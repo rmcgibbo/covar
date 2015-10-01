@@ -47,10 +47,12 @@ napoleon_numpy_docstring = True
 mathjax_path = 'https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 
 html_context = {
-    'github_user': 'rmcgibbo',
     'display_github': True,
+    'github_user': 'rmcgibbo',
     'github_repo': 'covar',
+    "conf_py_path": '/docs/',
     'github_version': 'master',
+    "source_suffix": '.rst',
 }
 
 intersphinx_mapping = {'sklearn': ('http://scikit-learn.org/stable/', None)}

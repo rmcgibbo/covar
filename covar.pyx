@@ -4,7 +4,7 @@ from scipy.linalg.cython_blas cimport dgemm
 
 
 def cov_shrink(const double[:, ::1] X, shrinkage=None):
-    r"""Compute shrinkage estimates of the covariance matrix.
+    r"""Compute a shrinkage estimate of the covariance matrix.
 
     Parameters
     ----------
@@ -80,10 +80,17 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
     with :math:`w_{kij} = (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j)`, and
     :math:`\bar{w}_{ij} = \frac{1}{n}\sum_{k=1}^n w_{kij}`.
 
+    This method is equivalent to the ``cov.shrink`` method in the R package
+    ``corpcor``, if the argument ``lambda.var`` is set to ``0``. See
+    https://cran.r-project.org/web/packages/corpcor/ for details.
+
     See Also
     --------
     sklearn.covariance.ledoit_wolf : very similar approach, but uses a different
          shrinkage target, :math:`T`.
+    sklearn.covariance.oas : very similar approach, but uses a different
+         shrinkage target, :math:`T`, and a different method for estimating
+         the shrinkage coefficient.
     """
     cdef int n, p, i, j, k
     n, p = X.shape[0], X.shape[1]
