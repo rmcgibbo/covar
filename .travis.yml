@@ -1,0 +1,33 @@
+language: c
+
+branches:
+  only:
+    - master
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_cd6c015d3c94_key -iv $encrypted_cd6c015d3c94_iv -in .pypirc.enc -out ~\/.pypirc -d
+
+install:
+  - MINICONDA=Miniconda-latest-Linux-x86_64.sh
+  - wget http://repo.continuum.io/miniconda/$MINICONDA
+  - bash $MINICONDA -b
+  - export PATH=$HOME/miniconda/bin:$PATH
+  - conda config --add channels r
+  - conda install --yes r nose numpy scipy cython
+
+env:
+  matrix:
+    - CONDA_PY=2.7
+    - CONDA_PY=3.4
+    - CONDA_PY=3.5
+
+script:
+  - python setup.py install
+  - nosetests
+
+after_success:
+    - '[ "${CONDA_PY}" = "3.5" ] &&
+        conda install --yes  numpydoc sphinx pip &&
+        pip install sphinx_rtd_theme &&
+        python setup.py build_sphinx &&
+        python setup.py upload_docs --upload-dir docs/_build/html'
