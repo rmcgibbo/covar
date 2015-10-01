@@ -13,7 +13,7 @@ install:
   - bash $MINICONDA -b
   - export PATH=$HOME/miniconda/bin:$PATH
   - conda config --add channels r
-  - conda install --yes r nose numpy scipy cython rpy2
+  - conda install --yes r nose numpy scipy cython rpy2 matplotlib
 
 env:
   matrix:
@@ -28,7 +28,7 @@ script:
 
 after_success:
     - '[ "${CONDA_PY}" = "3.5" ] &&
-        conda install --yes  numpydoc sphinx pip matplotlib &&
+        conda install --yes  numpydoc sphinx pip &&
         pip install sphinx_rtd_theme &&
         python setup.py build_sphinx &&
         python setup.py upload_docs --upload-dir build/sphinx/html/'
