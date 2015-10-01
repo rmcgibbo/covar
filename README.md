@@ -1,7 +1,7 @@
 `covar`: shrinkage covariance estimation
 =======================================
 
-This Python package contains a single function, cov_shrink` which implements
+This Python package contains a single function, `cov_shrink` which implements
 a plug-in shrinkage estimator for the covariance matrix.
 
 The estimator is described by [Schafer and Strimmer (2005)](http://www.degruyter.com/view/j/sagmb.2005.4.1/sagmb.2005.4.1.1175/sagmb.2005.4.1.1175.xml>),
