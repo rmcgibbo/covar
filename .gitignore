@@ -4,3 +4,4 @@ covar.cpp
 covar.egg-info
 docs/generated
 docs/_build
+tests/__pycache__
