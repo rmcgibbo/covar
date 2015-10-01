@@ -3,6 +3,12 @@
 from setuptools import setup, Extension
 from Cython.Distutils import build_ext
 
+
+##########################
+VERSION = "0.1"
+__version__ = VERSION
+##########################
+
 DOCLINES = __doc__.split("\n")
 CLASSIFIERS = """\
 Development Status :: 3 - Alpha
@@ -26,6 +32,7 @@ setup(
     description=DOCLINES[0],
     install_requires=['scipy >= 0.16', 'numpy >= 0.16'],
     long_description="\n".join(DOCLINES[2:]),
+    version=__version__,
     license='BSD',
     zip_safe=False,
     ext_modules=extensions,
