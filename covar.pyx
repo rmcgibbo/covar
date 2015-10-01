@@ -3,6 +3,9 @@ cimport cython
 from scipy.linalg.cython_blas cimport dgemm
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
 def cov_shrink(const double[:, ::1] X, shrinkage=None):
     r"""Compute a shrinkage estimate of the covariance matrix.
 
@@ -114,7 +117,7 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
     cy_dgemm_TN(X_meaned, X_meaned, w_ij_bar, 1.0/n)
 
     if shrinkage is not None:
-        gamma = float(shrinkage)
+        gamma = max(0.0, min(1.0, float(shrinkage)))
     else:
         for i in range(p):
             for j in range(p):
@@ -137,7 +140,7 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
                     gamma_num += var_r[i,j]
                     gamma_den += r[i,j]**2
 
-        gamma =  np.clip(gamma_num / gamma_den, 0, 1)
+        gamma =  max(0, min(1, gamma_num / gamma_den))
 
     for i in range(p):
         for j in range(p):
