@@ -66,16 +66,16 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
     .. math::
         \gamma = \frac{\sum_{i \neq j} \hat{Var}(r_{ij})}{\sum_{i \neq j} r^2_{ij}}
 
-    where :math:`r` is the sample correlation matrix.
+    where :math:`r` is the sample correlation matrix,
 
     .. math::
-        r_{ij} = \frac{\Sigma^{sample}_{ij}}{\sigma_i \sigma_j}
+        r_{ij} = \frac{\Sigma^{sample}_{ij}}{\sigma_i \sigma_j},
 
     and :math:`\hat{Var}(r_{ij})` is given by
 
     .. math::
         \hat{Var}(r_{ij}) = \frac{n}{(n-1)^3 \sigma_i^2 \sigma_j^2} \sum_{k=1}^n
-            (w_{kij} - \bar{w}_{ij})^2
+            (w_{kij} - \bar{w}_{ij})^2,
 
     with :math:`w_{kij} = (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j)`, and
     :math:`\bar{w}_{ij} = \frac{1}{n}\sum_{k=1}^n w_{kij}`.
