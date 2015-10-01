@@ -28,7 +28,6 @@ script:
 
 after_success:
     - '[ "${CONDA_PY}" = "3.5" ] &&
-        conda install --yes  numpydoc sphinx pip &&
-        pip install sphinx_rtd_theme &&
+        conda install --yes  numpydoc sphinx sphinx_rtd_theme &&
         python setup.py build_sphinx &&
         python setup.py upload_docs --upload-dir build/sphinx/html/'
