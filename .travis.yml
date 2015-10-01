@@ -18,6 +18,7 @@ install:
 env:
   matrix:
     - CONDA_PY=2.7
+    - CONDA_PY=3.3
     - CONDA_PY=3.4
     - CONDA_PY=3.5
 
@@ -30,4 +31,4 @@ after_success:
         conda install --yes  numpydoc sphinx pip &&
         pip install sphinx_rtd_theme &&
         python setup.py build_sphinx &&
-        python setup.py upload_docs --upload-dir docs/_build/html'
+        python setup.py upload_docs --upload-dir build/sphinx/html/'
