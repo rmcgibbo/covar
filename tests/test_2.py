@@ -2,6 +2,7 @@ import os.path
 import numpy as np
 import scipy.stats
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from covar import cov_shrink
 # from sklearn.covariance import ledoit_wolf, oas
