@@ -20,7 +20,7 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
     Returns
     -------
     cov : array, shape=(p, p)
-        Estimated covariance matrix of the data
+        Estimated covariance matrix of the data.
     shrinkage : float
         The applied covariance shrinkage intensity.
 
