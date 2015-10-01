@@ -2,3 +2,5 @@ build
 dist
 covar.cpp
 covar.egg-info
+docs/generated
+docs/_build

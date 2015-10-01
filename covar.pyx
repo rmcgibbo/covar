@@ -4,17 +4,17 @@ from scipy.linalg.cython_blas cimport dgemm
 
 
 def covar_shrink(const double[:, ::1] X, shrinkage=None):
-    """Compute shrinkage estimates of covariance, respectively.
+    r"""Compute shrinkage estimates of the covariance matrix.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     X : array, shape=(n, p)
         Data matrix. Each row represents a data point, and each column
         represents a feature.
     shrinkage : float, optional
         The covariance shrinkage intensity (range 0-1). If shrinkage is not
         specified (the default) it is estimated using an analytic formula
-        from Schafer and Strimmer (2005). For shrinkage=0 the empirical
+        from Schafer and Strimmer (2005). For ``shrinkage=0`` the empirical
         correlations are recovered.
 
     Returns
@@ -33,20 +33,55 @@ def covar_shrink(const double[:, ::1] X, shrinkage=None):
     Notes
     -----
     This shrinkage estimator corresponds to "Target D": (diagonal, unequal
-    variance) as described in [1]. The estimator takes the form.
+    variance) as described in [1]. The estimator takes the form
 
     .. math::
-        \hat{\Sigma} = (1-\gamma) \Sigma_{sample} + \gamma T
+        \hat{\Sigma} = (1-\gamma) \Sigma_{sample} + \gamma T,
 
-    where :math:`\Sigma_{sample}` is the unbiased empirical covariance matrix,
+    where :math:`\Sigma^{sample}` is the (noisy but unbiased) empirical
+    covariance matrix,
 
-    ..math::
-        `(\Sigma_{sample})_{ij} = (1/(n-1)) \sum_{k}
-            (x_{ki} - \bar{x}_i) * (x_{kj} - \bar{x}_j)`
+    .. math::
+        \Sigma^{sample}_{ij} = \frac{1}{n-1} \sum_{k=1}^n
+            (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j),
 
-    the matrix :math:`T` is the shrinkage target, and the scalar
-    :math:`gamma \in [0, 1]` is the shrinkage intensity.
+    and the matrix :math:`T` is the shrinkage target, and the scalar
+    :math:`\gamma \in [0, 1]` is the shrinkage intensity. This approaches
+    uses a diagonal shrinkage target, :math:`T`:
 
+    .. math::
+        T_{ij} = \begin{cases}
+            \Sigma^{sample}_{ii} &\text{ if } i = j\\
+            0 &\text{ otherwise},
+        \end{cases}
+
+    The idea is that by taking a weighted average of these two estimators, we
+    can get a combined estimator which is more accurate than either is
+    individually, especially when :math:`p` is large. The optimal weighting,
+    :math:`\gamma`, is determined automatically by minimizing the mean squared
+    error. See [1] for details. The formula for :math:`\gamma` is
+
+    .. math::
+        \gamma = \frac{\sum_{i \neq j} \hat{Var}(r_{ij})}{\sum_{i \neq j} r^2_{ij}}
+
+    where :math:`r` is the sample correlation matrix.
+
+    .. math::
+        r_{ij} = \frac{\Sigma^{sample}_{ij}}{\sigma_i \sigma_j}
+
+    and :math:`\hat{Var}(r_{ij})` is given by
+
+    .. math::
+        \hat{Var}(r_{ij}) = \frac{n}{(n-1)^3 \sigma_i^2 \sigma_j^2} \sum_{k=1}^n
+            (w_{kij} - \bar{w}_{ij})^2
+
+    with :math:`w_{kij} = (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j)`, and
+    :math:`\bar{w}_{ij} = \frac{1}{n}\sum_{k=1}^n w_{kij}`.
+
+    See Also
+    --------
+    sklearn.covariance.ledoit_wolf : very similar approach, but uses a different
+         shrinkage target, :math:`T`.
     """
     cdef int n, p, i, j, k
     n, p = X.shape[0], X.shape[1]
