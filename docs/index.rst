@@ -10,4 +10,4 @@ Covar: shrinkage covariance estimation
 .. autosummary::
     :toctree: generated/
 
-    ~covar_shrink
+    ~cov_shrink

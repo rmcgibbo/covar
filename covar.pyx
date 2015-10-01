@@ -3,7 +3,7 @@ cimport cython
 from scipy.linalg.cython_blas cimport dgemm
 
 
-def covar_shrink(const double[:, ::1] X, shrinkage=None):
+def cov_shrink(const double[:, ::1] X, shrinkage=None):
     r"""Compute shrinkage estimates of the covariance matrix.
 
     Parameters
