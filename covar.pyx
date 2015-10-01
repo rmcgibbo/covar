@@ -45,9 +45,10 @@ def covar_shrink(const double[:, ::1] X, shrinkage=None):
         \Sigma^{sample}_{ij} = \frac{1}{n-1} \sum_{k=1}^n
             (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j),
 
-    and the matrix :math:`T` is the shrinkage target, and the scalar
-    :math:`\gamma \in [0, 1]` is the shrinkage intensity. This approaches
-    uses a diagonal shrinkage target, :math:`T`:
+    the matrix :math:`T` is the shrinkage target, a less noisy but biased
+    estimator for the covariance, and the scalar :math:`\gamma \in [0, 1]` is
+    the shrinkage intensity (regularization strength). This approaches uses a
+    diagonal shrinkage target, :math:`T`:
 
     .. math::
         T_{ij} = \begin{cases}
@@ -58,8 +59,9 @@ def covar_shrink(const double[:, ::1] X, shrinkage=None):
     The idea is that by taking a weighted average of these two estimators, we
     can get a combined estimator which is more accurate than either is
     individually, especially when :math:`p` is large. The optimal weighting,
-    :math:`\gamma`, is determined automatically by minimizing the mean squared
-    error. See [1] for details. The formula for :math:`\gamma` is
+    :math:`\gamma`, is determined **automatically** by minimizing the mean
+    squared error. See [1] for details on how this can be done. The formula
+    for :math:`\gamma` is
 
     .. math::
         \gamma = \frac{\sum_{i \neq j} \hat{Var}(r_{ij})}{\sum_{i \neq j} r^2_{ij}}
