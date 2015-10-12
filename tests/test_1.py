@@ -1,5 +1,5 @@
 import numpy as np
-from covar import cov_shrink
+from covar import cov_shrink_ss
 
 from rpy2.robjects import r
 import rpy2.rinterface
@@ -21,7 +21,7 @@ def setup():
 def test_1():
     for X in [np.random.randn(10,3), np.random.randn(100,3)]:
         r_result = corpcor.cov_shrink(X, lambda_var=0, verbose=False)
-        py_result = cov_shrink(X)
+        py_result = cov_shrink_ss(X)
 
         np.testing.assert_array_almost_equal(r_result, py_result[0])
         np.testing.assert_almost_equal(r.attr(r_result, 'lambda')[0], py_result[1])

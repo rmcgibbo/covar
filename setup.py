@@ -5,7 +5,7 @@ from Cython.Distutils import build_ext
 
 
 ##########################
-VERSION = "0.1"
+VERSION = "0.2"
 __version__ = VERSION
 ##########################
 
@@ -30,7 +30,8 @@ setup(
     cmdclass={'build_ext': build_ext},
     url="https://github.com/rmcgibbo/covar",
     description=DOCLINES[0],
-    install_requires=['scipy >= 0.16', 'numpy >= 0.16'],
+    setup_requires=['cython', 'scipy >= 0.16', 'numpy >= 1.6'],
+    install_requires=['scipy >= 0.16', 'numpy >= 1.6'],
     long_description="\n".join(DOCLINES[2:]),
     version=__version__,
     license='BSD',
