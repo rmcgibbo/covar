@@ -6,8 +6,9 @@ from scipy.linalg.cython_blas cimport dgemm
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def cov_shrink(const double[:, ::1] X, shrinkage=None):
-    r"""Compute a shrinkage estimate of the covariance matrix.
+def cov_shrink_ss(const double[:, ::1] X, shrinkage=None):
+    r"""Compute a shrinkage estimate of the covariance matrix using
+    the Schafer and Strimmer (2005) method.
 
     Parameters
     ----------
@@ -32,6 +33,7 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
     .. [1] Schafer, J., and K. Strimmer. 2005. A shrinkage approach to
         large-scale covariance estimation and implications for functional
         genomics. Statist. Appl. Genet. Mol. Biol. 4:32.
+        http://doi.org/10.2202/1544-6115.1175
 
     Notes
     -----
@@ -89,11 +91,10 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
 
     See Also
     --------
+    cov_shrink_rblw : similar method, using a different shrinkage target,
+        :math:`T`.
     sklearn.covariance.ledoit_wolf : very similar approach, but uses a different
-         shrinkage target, :math:`T`.
-    sklearn.covariance.oas : very similar approach, but uses a different
-         shrinkage target, :math:`T`, and a different method for estimating
-         the shrinkage coefficient.
+        shrinkage target, :math:`T`.
     """
     cdef int n, p, i, j, k
     n, p = X.shape[0], X.shape[1]
@@ -153,6 +154,115 @@ def cov_shrink(const double[:, ::1] X, shrinkage=None):
 
     return np.asarray(out), gamma
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def cov_shrink_rblw(const double[:, ::1] S, int n, shrinkage=None):
+    r"""Compute a shrinkage estimate of the covariance matrix using
+    the Rao-Blackwellized Ledoit-Wolf estimator described by Chen et al.
+
+    Parameters
+    ----------
+    S : array, shape=(n, n)
+        Sample covariance matrix (e.g. estimated with np.cov(X.T))
+    n : int
+        Number of data points used in the estimate of S.
+    shrinkage : float, optional
+        The covariance shrinkage intensity (range 0-1). If shrinkage is not
+        specified (the default) it is estimated using an analytic formula
+        from Chen et al. (2009).
+
+    Returns
+    -------
+    sigma : array, shape=(p, p)
+        Estimated shrunk covariance matrix
+    shrinkage : float
+        The applied covariance shrinkage intensity.
+
+    Notes
+    -----
+    This shrinkage estimator takes the form
+
+    .. math::
+        \hat{\Sigma} = (1-\gamma) \Sigma_{sample} + \gamma T
+
+    where :math:`\Sigma^{sample}` is the (noisy but unbiased) empirical
+    covariance matrix,
+
+    .. math::
+        \Sigma^{sample}_{ij} = \frac{1}{n-1} \sum_{k=1}^n
+            (x_{ki} - \bar{x}_i)(x_{kj} - \bar{x}_j),
+
+    the matrix :math:`T` is the shrinkage target, a less noisy but biased
+    estimator for the covariance, and the scalar :math:`\gamma \in [0, 1]` is
+    the shrinkage intensity (regularization strength). This approaches uses a
+    scaled identity target, :math:`T`:
+
+    .. math::
+        T = \frac{\mathrm{Tr}(S)}{p} I_p
+
+    The shrinkage intensity, :math:`\gamma`, is determined using the RBLW
+    estimator from [2]. The formula for :math:`\gamma` is
+
+    .. math::
+        \gamma = \min(\alpha + \frac{\beta}{U})
+
+    where :math:`\alpha`, :math:`\beta`, and :math:`U` are
+
+    .. math::
+        \alpha &= \frac{n-2}{n(n+2)} \\
+        \beta  &= \frac{(p+1)n - 2}{n(n+2)} \\
+        U      &= \frac{p\, \mathrm{Tr}(S^2)}{\mathrm{Tr}^2(S)} - 1
+
+    One particularly useful property of this estimator is that it's **very
+    fast**, because it doesn't require access to the data matrix at all (unlike
+    :func:`cov_shrink_ss`). It only requires the sample covariance matrix
+    and the number of data points `n`, as sufficient statistics.
+
+    For reference, note that [2] defines another estimator, called the oracle
+    approximating shrinkage estimator (OAS), but makes some mathematical errors
+    during the derivation, and futhermore their example code published with
+    the paper does not implement the proposed formulas.
+
+    References
+    ----------
+    .. [2] Chen, Yilun, Ami Wiesel, and Alfred O. Hero III. "Shrinkage
+       estimation of high dimensional covariance matrices" ICASSP (2009)
+       http://doi.org/10.1109/ICASSP.2009.4960239
+
+    See Also
+    --------
+    cov_shrink_ss : similar method, using a different shrinkage target, :math:`T`.
+    sklearn.covariance.ledoit_wolf : very similar approach using the same
+        shrinkage target, :math:`T`, but a different method for estimating the
+        shrinkage intensity, :math:`gamma`.
+
+    """
+    cdef int i, j
+    cdef int p = S.shape[0]
+    if S.shape[1] != p:
+        raise ValueError('S must be a (p x p) matrix')
+
+    cdef double alpha = (n-2)/(n*(n+2))
+    cdef double beta = ((p+1)*n - 2) / (n*(n+2))
+
+    cdef double trace_S       # np.trace(S)
+    cdef double trace_S2 = 0  # np.trace(S.dot(S))
+    for i in range(p):
+        trace_S += S[i,i]
+        for j in range(p):
+            trace_S2 += S[i,j]*S[i,j]
+
+    cdef double U = ((p * trace_S2 / (trace_S*trace_S)) - 1)
+    cdef double rho = min(alpha + beta/U, 1)
+
+    F = (trace_S / p) * np.eye(p)
+    return (1-rho)*np.asarray(S) + rho*F, rho
+
+
+
+#############################  Private utilities #############################
 
 @cython.boundscheck(False)
 cdef inline int cy_dgemm_TN(double[:, ::1] a, double[:, ::1] b, double[:, ::1] c, double alpha=1.0, double beta=0.0) nogil:
