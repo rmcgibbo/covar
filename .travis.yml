@@ -28,6 +28,8 @@ script:
 
 after_success:
     - '[ "${CONDA_PY}" = "3.5" ] &&
+       [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
+       [ "$TRAVIS_BRANCH" != "master" ] &&
         conda install --yes  numpydoc sphinx sphinx_rtd_theme &&
         python setup.py build_sphinx &&
         python setup.py upload_docs --upload-dir build/sphinx/html/'
